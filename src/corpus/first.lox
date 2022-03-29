@@ -1,0 +1,5 @@
+var language = "lox";
+
+// keyword -> var
+// lexemes (raw substring) -> var  language  =  "lox"  ;
+
