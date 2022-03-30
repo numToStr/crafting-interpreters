@@ -4,9 +4,9 @@ use crate::token_type::TokenType;
 
 #[derive(Debug)]
 pub struct Token {
-    typ: TokenType,
-    lexeme: Option<String>,
-    line: usize,
+    pub typ: TokenType,
+    pub lexeme: Option<String>,
+    pub line: usize,
 }
 
 impl Display for Token {
