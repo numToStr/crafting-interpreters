@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::token_type::TokenType;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub typ: TokenType,
     pub lexeme: Option<String>,

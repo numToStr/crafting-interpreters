@@ -1,6 +1,7 @@
 mod gen_ast;
 mod lexer;
 mod lox;
+mod parser;
 mod printer;
 mod token;
 mod token_type;
