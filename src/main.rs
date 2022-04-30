@@ -1,4 +1,5 @@
 mod gen_ast;
+mod interpreter;
 mod lexer;
 mod lox;
 mod parser;

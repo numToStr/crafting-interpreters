@@ -3,7 +3,7 @@ use std::{
     io::{self, BufRead, Write},
 };
 
-use crate::{lexer::Lexer, parser::Parser};
+use crate::{interpreter::Interpreter, lexer::Lexer, parser::Parser};
 
 pub struct Lox;
 
@@ -35,12 +35,13 @@ impl Lox {
 
     pub fn run(src: &str) -> Result<(), ()> {
         let tokens = Lexer::new(src).parse()?;
-        let parser = Parser::new(&tokens).parse();
+        let tree = Parser::new(&tokens).parse();
         // for t in tokens {
         //     println!("{:?}", t)
         // }
 
-        dbg!(parser);
+        dbg!(&tree);
+        Interpreter::interpret(*tree);
 
         Ok(())
     }
