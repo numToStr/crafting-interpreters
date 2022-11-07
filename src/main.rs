@@ -1,5 +1,6 @@
 use std::{env, io};
 
+mod ast_printer;
 use lox::Lox;
 
 fn main() -> io::Result<()> {
