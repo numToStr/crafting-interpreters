@@ -13,7 +13,7 @@ pub struct Binary<'b> {
 
 impl Acceptor for Binary<'_> {
     fn accept(&self, n: &impl super::Visitor) {
-        n.visit(self)
+        n.visit_binary(self)
     }
 }
 

@@ -1,15 +1,17 @@
 use std::fmt::{Debug, Display};
 
-use crate::token_type::TokenType;
-
-use self::{binary::Binary, grouping::Grouping, unary::Unary};
+use self::{binary::Binary, grouping::Grouping, literal::Literal, unary::Unary};
 
 pub mod binary;
 pub mod grouping;
+pub mod literal;
 pub mod unary;
 
 pub trait Visitor {
-    fn visit(&self, n: &impl Acceptor);
+    fn visit_binary(&self, n: &impl Acceptor);
+    fn visit_grouping(&self, n: &impl Acceptor);
+    fn visit_literal(&self, n: &impl Acceptor);
+    fn visit_unary(&self, n: &impl Acceptor);
 }
 
 pub trait Acceptor {
@@ -20,13 +22,18 @@ pub trait Acceptor {
 pub enum Expr<'e> {
     Binary(Binary<'e>),
     Grouping(Grouping<'e>),
-    Literal(TokenType<'e>),
+    Literal(Literal<'e>),
     Unary(Unary<'e>),
 }
 
 impl Acceptor for Expr<'_> {
     fn accept(&self, n: &impl Visitor) {
-        n.visit(self)
+        match self {
+            Expr::Binary(x) => x.accept(n),
+            Expr::Grouping(x) => x.accept(n),
+            Expr::Literal(x) => x.accept(n),
+            Expr::Unary(x) => x.accept(n),
+        }
     }
 }
 
@@ -35,7 +42,7 @@ impl Display for Expr<'_> {
         match self {
             Self::Binary(x) => f.write_str(&x.to_string()),
             Self::Grouping(x) => f.write_str(&x.to_string()),
-            Self::Literal(x) => x.fmt(f),
+            Self::Literal(x) => f.write_str(&x.to_string()),
             Self::Unary(x) => f.write_str(&x.to_string()),
         }
     }

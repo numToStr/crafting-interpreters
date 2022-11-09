@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 #[non_exhaustive]
 pub enum TokenType<'t> {
     // SINGLE-CHARACTER TOKENS.

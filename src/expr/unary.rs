@@ -12,7 +12,7 @@ pub struct Unary<'u> {
 
 impl Acceptor for Unary<'_> {
     fn accept(&self, n: &impl super::Visitor) {
-        n.visit(self)
+        n.visit_unary(self)
     }
 }
 

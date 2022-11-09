@@ -9,7 +9,7 @@ pub struct Grouping<'g> {
 
 impl Acceptor for Grouping<'_> {
     fn accept(&self, n: &impl super::Visitor) {
-        n.visit(self)
+        n.visit_grouping(self)
     }
 }
 

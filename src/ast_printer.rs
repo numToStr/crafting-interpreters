@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use lox::{
-    expr::{binary::Binary, grouping::Grouping, unary::Unary, Expr},
+    expr::{binary::Binary, grouping::Grouping, literal::Literal, unary::Unary, Expr},
     token::Token,
     token_type::TokenType,
 };
@@ -13,11 +13,11 @@ impl AstPrinter {
         let e = Expr::Binary(Binary::new(
             Box::new(Expr::Unary(Unary::new(
                 Token::new(TokenType::Minus, "-", 1),
-                Box::new(Expr::Literal(TokenType::Number(123.0))),
+                Box::new(Expr::Literal(Literal::new(TokenType::Number(123.0)))),
             ))),
             Token::new(TokenType::Star, "*", 1),
             Box::new(Expr::Grouping(Grouping::new(Box::new(Expr::Literal(
-                TokenType::Number(45.67),
+                Literal::new(TokenType::Number(45.67)),
             ))))),
         ));
 
