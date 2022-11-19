@@ -1,8 +1,12 @@
 pub mod expr;
+mod interpreter;
 pub mod parser;
 pub mod scanner;
 pub mod token;
 pub mod token_type;
+
+mod error;
+pub use error::*;
 
 use std::{
     fs::read_to_string,
@@ -10,7 +14,7 @@ use std::{
     path::Path,
 };
 
-use crate::{parser::Parser, scanner::Scanner};
+use crate::{interpreter::Interpreter, parser::Parser, scanner::Scanner};
 
 #[derive(Debug)]
 pub struct Lox;
@@ -43,7 +47,7 @@ impl Lox {
         let tokens = scanner.scan_tokens();
         let mut parser = Parser::new(tokens);
         let expr = parser.parse();
-        dbg!(expr);
+        Interpreter::interpret(expr);
     }
 
     pub fn error(ln: usize, msg: &str) {

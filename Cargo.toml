@@ -10,3 +10,10 @@ name = "lox"
 path = "src/lox.rs"
 
 [dependencies]
+
+[profile.release]
+lto = true
+strip = true
+opt-level = 3
+codegen-units = 1
+panic = "abort"

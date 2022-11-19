@@ -1,18 +1,23 @@
 use std::fmt::Display;
 
-use crate::token::Token;
+use crate::{token::Token, RuntimeError};
 
-use super::{Acceptor, Expr};
+use super::{literal::Literal, Acceptor, Expr, Visitor};
 
 #[derive(Debug)]
 pub struct Binary<'b> {
-    left: Box<Expr<'b>>,
-    op: Token<'b>,
-    right: Box<Expr<'b>>,
+    pub left: Box<Expr<'b>>,
+    pub op: Token<'b>,
+    pub right: Box<Expr<'b>>,
 }
 
 impl Acceptor for Binary<'_> {
-    fn accept(&self, n: &impl super::Visitor) {
+    type O<'o> = Literal<'o> where Self: 'o;
+    type E<'e> = RuntimeError<'e> where Self: 'e;
+    fn accept<'a>(
+        &'a self,
+        n: &'a impl Visitor<O<'a> = Literal<'a>, E<'a> = RuntimeError<'a>>,
+    ) -> Result<Self::O<'a>, Self::E<'a>> {
         n.visit_binary(self)
     }
 }

@@ -1,14 +1,21 @@
 use std::fmt::Display;
 
-use super::{Acceptor, Expr};
+use crate::RuntimeError;
+
+use super::{literal::Literal, Acceptor, Expr, Visitor};
 
 #[derive(Debug)]
 pub struct Grouping<'g> {
-    expr: Box<Expr<'g>>,
+    pub expr: Box<Expr<'g>>,
 }
 
 impl Acceptor for Grouping<'_> {
-    fn accept(&self, n: &impl super::Visitor) {
+    type O<'o> = Literal<'o> where Self: 'o;
+    type E<'e> = RuntimeError<'e> where Self: 'e;
+    fn accept<'a>(
+        &'a self,
+        n: &'a impl Visitor<O<'a> = Literal<'a>, E<'a> = RuntimeError<'a>>,
+    ) -> Result<Self::O<'a>, Self::E<'a>> {
         n.visit_grouping(self)
     }
 }

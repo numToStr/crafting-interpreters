@@ -1,5 +1,7 @@
 use std::fmt::{Debug, Display};
 
+use crate::RuntimeError;
+
 use self::{binary::Binary, grouping::Grouping, literal::Literal, unary::Unary};
 
 pub mod binary;
@@ -8,14 +10,29 @@ pub mod literal;
 pub mod unary;
 
 pub trait Visitor {
-    fn visit_binary(&self, n: &impl Acceptor);
-    fn visit_grouping(&self, n: &impl Acceptor);
-    fn visit_literal(&self, n: &impl Acceptor);
-    fn visit_unary(&self, n: &impl Acceptor);
+    type O<'o>
+    where
+        Self: 'o;
+    type E<'e>
+    where
+        Self: 'e;
+    fn visit_binary<'b>(&'b self, n: &'b Binary<'b>) -> Result<Self::O<'b>, Self::E<'b>>;
+    fn visit_grouping<'g>(&'g self, n: &'g Grouping<'g>) -> Result<Self::O<'g>, Self::E<'g>>;
+    fn visit_literal<'l>(&'l self, n: &'l Literal<'l>) -> Result<Self::O<'l>, Self::E<'l>>;
+    fn visit_unary<'u>(&'u self, n: &'u Unary<'u>) -> Result<Self::O<'u>, Self::E<'u>>;
 }
 
 pub trait Acceptor {
-    fn accept(&self, n: &impl Visitor);
+    type O<'o>
+    where
+        Self: 'o;
+    type E<'e>
+    where
+        Self: 'e;
+    fn accept<'a>(
+        &'a self,
+        n: &'a impl Visitor<O<'a> = Self::O<'a>, E<'a> = Self::E<'a>>,
+    ) -> Result<Self::O<'a>, Self::E<'a>>;
 }
 
 #[derive(Debug)]
@@ -27,7 +44,12 @@ pub enum Expr<'e> {
 }
 
 impl Acceptor for Expr<'_> {
-    fn accept(&self, n: &impl Visitor) {
+    type O<'o> = Literal<'o> where Self: 'o;
+    type E<'e> = RuntimeError<'e> where Self: 'e;
+    fn accept<'a>(
+        &'a self,
+        n: &'a impl Visitor<O<'a> = Literal<'a>, E<'a> = RuntimeError<'a>>,
+    ) -> Result<Self::O<'a>, Self::E<'a>> {
         match self {
             Expr::Binary(x) => x.accept(n),
             Expr::Grouping(x) => x.accept(n),

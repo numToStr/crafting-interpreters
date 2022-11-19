@@ -2,7 +2,7 @@ use crate::{
     expr::{binary::Binary, grouping::Grouping, literal::Literal, unary::Unary, Expr},
     token::Token,
     token_type::TokenType,
-    Lox,
+    Lox, ParseError,
 };
 
 pub struct Parser<'p> {
@@ -85,13 +85,25 @@ impl<'p> Parser<'p> {
                 self.consume(TokenType::RightParen, "Exepect ')' after expression!")?;
                 Ok(Expr::Grouping(Grouping::new(Box::new(expr))))
             }
-            x @ (TokenType::True
-            | TokenType::False
-            | TokenType::Nil
-            | TokenType::Number(_)
-            | TokenType::String(_)) => {
+            TokenType::Nil => {
                 self.advance();
-                Ok(Expr::Literal(Literal::new(x)))
+                Ok(Expr::Literal(Literal::Nil))
+            }
+            TokenType::True => {
+                self.advance();
+                Ok(Expr::Literal(Literal::Bool(true)))
+            }
+            TokenType::False => {
+                self.advance();
+                Ok(Expr::Literal(Literal::Bool(false)))
+            }
+            TokenType::Number(n) => {
+                self.advance();
+                Ok(Expr::Literal(Literal::Number(n)))
+            }
+            TokenType::String(s) => {
+                self.advance();
+                Ok(Expr::Literal(Literal::Str(s)))
             }
             _ => {
                 self.error(self.peek(), "Expect expression!")?;
@@ -175,9 +187,4 @@ impl<'p> Parser<'p> {
         self.advance();
         Some(())
     }
-}
-
-#[derive(Debug)]
-enum ParseError {
-    Missing,
 }

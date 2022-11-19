@@ -182,7 +182,7 @@ impl<'s> Scanner<'s> {
             return '\0';
         }
 
-        self.src.chars().nth(self.current).unwrap()
+        self.src.chars().nth(self.current + 1).unwrap()
     }
 
     fn is_end(&self) -> bool {
