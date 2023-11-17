@@ -1,7 +1,11 @@
+use std::borrow::Cow;
+
 use crate::{
     expr::{
-        binary::Binary, grouping::Grouping, literal::Literal, unary::Unary, Acceptor, Expr, Visitor,
+        binary::Binary, grouping::Grouping, literal::Literal, unary::Unary, Expr, ExprAcceptor,
+        ExprVisitor,
     },
+    statement::{Expression, Print, Statement, StmtAcceptor, StmtVisitor},
     token::Token,
     token_type::TokenType,
     RuntimeError,
@@ -11,19 +15,20 @@ use crate::{
 pub struct Interpreter {}
 
 impl Interpreter {
-    pub fn interpret(expr: Expr) {
-        match Self::evaluate(&Self {}, &expr) {
-            Ok(v) => {
-                dbg!(v);
-            }
-            Err(e) => {
-                eprintln!("{e}");
-            }
-        };
+    pub fn interpret<'o>(stmts: &'o [Statement<'o>]) -> Result<(), RuntimeError<'o>> {
+        for stmt in stmts {
+            Self::execute(&Self {}, stmt)?;
+        }
+
+        Ok(())
     }
 
     fn evaluate<'o>(&'o self, expr: &'o Expr<'o>) -> Result<Literal<'o>, RuntimeError<'o>> {
         expr.accept(self)
+    }
+
+    fn execute<'o>(&'o self, stmt: &'o Statement<'o>) -> Result<(), RuntimeError<'o>> {
+        stmt.accept(self)
     }
 
     fn is_equal(&self, left: Literal, right: Literal) -> bool {
@@ -34,11 +39,7 @@ impl Interpreter {
             (Literal::Bool(_), _) => false,
             (Literal::Number(l), Literal::Number(r)) => l == r,
             (Literal::Number(_), _) => false,
-            (Literal::Str(l), Literal::Str(r)) => l == r,
-            (Literal::Str(l), Literal::String(r)) => l == r,
-            (Literal::Str(_), _) => false,
             (Literal::String(l), Literal::String(r)) => l == r,
-            (Literal::String(l), Literal::Str(r)) => l == r,
             (Literal::String(_), _) => false,
         }
     }
@@ -48,7 +49,7 @@ impl Interpreter {
     }
 }
 
-impl Visitor for Interpreter {
+impl ExprVisitor for Interpreter {
     type O<'o> = Literal<'o>;
     type E<'e> = RuntimeError<'e>;
 
@@ -64,8 +65,8 @@ impl Visitor for Interpreter {
             }
             (TokenType::Star, Literal::Number(l), Literal::Number(r)) => Ok(Literal::Number(l * r)),
             (TokenType::Plus, Literal::Number(l), Literal::Number(r)) => Ok(Literal::Number(l + r)),
-            (TokenType::Plus, Literal::Str(l), Literal::Str(r)) => {
-                Ok(Literal::String(l.to_owned() + r))
+            (TokenType::Plus, Literal::String(l), Literal::String(r)) => {
+                Ok(Literal::String(Cow::Owned(l.into_owned() + &r)))
             }
             (TokenType::Greater, Literal::Number(l), Literal::Number(r)) => {
                 Ok(Literal::Bool(l > r))
@@ -100,5 +101,21 @@ impl Visitor for Interpreter {
             (TokenType::Minus, _) => Err(self.number_err(n.op)),
             _ => unreachable!(),
         }
+    }
+}
+
+impl StmtVisitor for Interpreter {
+    type O<'o> = ();
+    type E<'e> = RuntimeError<'e>;
+
+    fn visit_expression<'b>(&'b self, n: &'b Expression<'b>) -> Result<Self::O<'b>, Self::E<'b>> {
+        self.evaluate(&n.expr)?;
+        Ok(())
+    }
+
+    fn visit_print<'g>(&'g self, n: &'g Print<'g>) -> Result<Self::O<'g>, Self::E<'g>> {
+        let value = self.evaluate(&n.expr)?;
+        println!("{value}");
+        Ok(())
     }
 }

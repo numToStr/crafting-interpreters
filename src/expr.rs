@@ -9,7 +9,7 @@ pub mod grouping;
 pub mod literal;
 pub mod unary;
 
-pub trait Visitor {
+pub trait ExprVisitor {
     type O<'o>
     where
         Self: 'o;
@@ -22,7 +22,7 @@ pub trait Visitor {
     fn visit_unary<'u>(&'u self, n: &'u Unary<'u>) -> Result<Self::O<'u>, Self::E<'u>>;
 }
 
-pub trait Acceptor {
+pub trait ExprAcceptor {
     type O<'o>
     where
         Self: 'o;
@@ -31,7 +31,7 @@ pub trait Acceptor {
         Self: 'e;
     fn accept<'a>(
         &'a self,
-        n: &'a impl Visitor<O<'a> = Self::O<'a>, E<'a> = Self::E<'a>>,
+        n: &'a impl ExprVisitor<O<'a> = Self::O<'a>, E<'a> = Self::E<'a>>,
     ) -> Result<Self::O<'a>, Self::E<'a>>;
 }
 
@@ -43,12 +43,12 @@ pub enum Expr<'e> {
     Unary(Unary<'e>),
 }
 
-impl Acceptor for Expr<'_> {
+impl ExprAcceptor for Expr<'_> {
     type O<'o> = Literal<'o> where Self: 'o;
     type E<'e> = RuntimeError<'e> where Self: 'e;
     fn accept<'a>(
         &'a self,
-        n: &'a impl Visitor<O<'a> = Literal<'a>, E<'a> = RuntimeError<'a>>,
+        n: &'a impl ExprVisitor<O<'a> = Literal<'a>, E<'a> = RuntimeError<'a>>,
     ) -> Result<Self::O<'a>, Self::E<'a>> {
         match self {
             Expr::Binary(x) => x.accept(n),

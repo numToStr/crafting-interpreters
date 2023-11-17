@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::{token::Token, RuntimeError};
 
-use super::{literal::Literal, Acceptor, Expr, Visitor};
+use super::{literal::Literal, ExprAcceptor, Expr, ExprVisitor};
 
 #[derive(Debug)]
 pub struct Unary<'u> {
@@ -10,12 +10,12 @@ pub struct Unary<'u> {
     pub right: Box<Expr<'u>>,
 }
 
-impl Acceptor for Unary<'_> {
+impl ExprAcceptor for Unary<'_> {
     type O<'o> = Literal<'o> where Self: 'o;
     type E<'e> = RuntimeError<'e> where Self: 'e;
     fn accept<'a>(
         &'a self,
-        n: &'a impl Visitor<O<'a> = Literal<'a>, E<'a> = RuntimeError<'a>>,
+        n: &'a impl ExprVisitor<O<'a> = Literal<'a>, E<'a> = RuntimeError<'a>>,
     ) -> Result<Self::O<'a>, Self::E<'a>> {
         n.visit_unary(self)
     }

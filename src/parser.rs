@@ -1,5 +1,8 @@
+use std::borrow::Cow;
+
 use crate::{
     expr::{binary::Binary, grouping::Grouping, literal::Literal, unary::Unary, Expr},
+    statement::{Expression, Print, Statement},
     token::Token,
     token_type::TokenType,
     Lox, ParseError,
@@ -15,12 +18,38 @@ impl<'p> Parser<'p> {
         Self { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Expr<'p> {
-        self.expression().unwrap()
+    pub fn parse(mut self) -> Result<Vec<Statement<'p>>, ParseError> {
+        let mut stmts: Vec<Statement<'p>> = Vec::new();
+
+        while !self.at_end() {
+            stmts.push(self.statement()?);
+        }
+
+        Ok(stmts)
     }
 
     fn expression(&mut self) -> Result<Expr<'p>, ParseError> {
         self.equality()
+    }
+
+    fn statement(&mut self) -> Result<Statement<'p>, ParseError> {
+        if self.one_of(&[TokenType::Print]) {
+            return self.print_statement();
+        }
+
+        self.expr_statement()
+    }
+
+    fn print_statement(&mut self) -> Result<Statement<'p>, ParseError> {
+        let expr = self.expression()?;
+        self.consume(TokenType::Semicolon, "Expect ';' after value.")?;
+        Ok(Statement::Print(Print::new(expr)))
+    }
+
+    fn expr_statement(&mut self) -> Result<Statement<'p>, ParseError> {
+        let expr = self.expression()?;
+        self.consume(TokenType::Semicolon, "Expect ';' after expression.")?;
+        Ok(Statement::Expression(Expression::new(expr)))
     }
 
     fn equality(&mut self) -> Result<Expr<'p>, ParseError> {
@@ -103,7 +132,7 @@ impl<'p> Parser<'p> {
             }
             TokenType::String(s) => {
                 self.advance();
-                Ok(Expr::Literal(Literal::Str(s)))
+                Ok(Expr::Literal(Literal::String(Cow::Borrowed(s))))
             }
             _ => {
                 self.error(self.peek(), "Expect expression!")?;
